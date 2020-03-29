@@ -27,7 +27,7 @@ class Cart with ChangeNotifier {
 
   void removeItem(String prodid) {
     _items.remove(prodid);
-      notifyListeners();
+    notifyListeners();
   }
 
   double get totalPrice {
@@ -58,6 +58,12 @@ class Cart with ChangeNotifier {
                 quantity: 1,
               ));
     }
+    notifyListeners();
+  }
+
+
+  void clearCart() {
+    _items = {};
     notifyListeners();
   }
 }

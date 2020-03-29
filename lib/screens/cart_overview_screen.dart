@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../provider/cart.dart' show Cart;
 import '../widgets/cart_item.dart' as ci;
+import '../provider/orders.dart';
 
 class CartOverviewScreen extends StatelessWidget {
   static const routeNamed = '/cart-overview-screen';
@@ -9,7 +10,6 @@ class CartOverviewScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cartItem = Provider.of<Cart>(context);
-
     return Scaffold(
       appBar: AppBar(
         title: Text('My Cart'),
@@ -37,9 +37,13 @@ class CartOverviewScreen extends StatelessWidget {
                   ),
                   FlatButton(
                     child: Text('ORDER NOW!'),
-                    onPressed: () {},
+                    onPressed: () {
+                      Provider.of<Orders>(context, listen: false).addOrder(
+                          cartItem.items.values.toList(), cartItem.totalPrice);
+                      cartItem.clearCart();
+                    },
                     textColor: Theme.of(context).primaryColor,
-                  )
+                  ),
                 ],
               ),
             ),
@@ -51,7 +55,7 @@ class CartOverviewScreen extends StatelessWidget {
             child: ListView.builder(
               itemBuilder: (ctx, i) => ci.CartItems(
                 id: cartItem.items.values.toList()[i].id,
-                ProdId:cartItem.items.keys.toList()[i],
+                ProdId: cartItem.items.keys.toList()[i],
                 title: cartItem.items.values.toList()[i].title,
                 price: cartItem.items.values.toList()[i].price,
                 quantity: cartItem.items.values.toList()[i].quantity,
