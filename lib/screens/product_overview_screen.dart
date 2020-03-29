@@ -27,6 +27,18 @@ class _ProductOverviewScreenState extends State<ProductOverviewScreen> {
       appBar: AppBar(
         title: Text('Shopify'),
         actions: <Widget>[
+          Consumer<Cart>(
+            builder: (_, cart, ch) => Badge(
+              child: ch,
+              value: cart.getItemCount.toString(),
+            ),
+            child: IconButton(
+              icon: Icon(Icons.add_shopping_cart),
+              onPressed: () {
+                Navigator.of(context).pushNamed(CartOverviewScreen.routeNamed);
+              },
+            ),
+          ),
           PopupMenuButton(
             onSelected: (selectedValue) {
               setState(() {
@@ -47,18 +59,6 @@ class _ProductOverviewScreenState extends State<ProductOverviewScreen> {
                 value: FilterFavourites.All,
               ),
             ],
-          ),
-          Consumer<Cart>(
-            builder: (_, cart, ch) => Badge(
-              child: ch,
-              value: cart.getItemCount.toString(),
-            ),
-            child: IconButton(
-              icon: Icon(Icons.add_shopping_cart),
-              onPressed: () {
-                Navigator.of(context).pushNamed(CartOverviewScreen.routeNamed);
-              },
-            ),
           ),
         ],
       ),
