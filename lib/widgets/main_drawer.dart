@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttershopapp/screens/orders_overview_screen.dart';
+
+import '../screens/orders_overview_screen.dart';
+import '../screens/user_products_screen.dart';
 
 class MainDrawer extends StatelessWidget {
   @override
@@ -54,6 +56,21 @@ class MainDrawer extends StatelessWidget {
             ),
             trailing: Icon(
               Icons.payment,
+              color: Theme.of(context).accentColor,
+            ),
+          ),
+          Divider(),
+          ListTile(
+            onTap: () => Navigator.of(context)
+                .pushReplacementNamed(UserProductsScreen.routeArgs),
+            title: Text(
+              'Manage Products',
+              style: Theme.of(context).textTheme.title.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
+            trailing: Icon(
+              Icons.edit,
               color: Theme.of(context).accentColor,
             ),
           ),
