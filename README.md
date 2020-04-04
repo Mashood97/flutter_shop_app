@@ -1,6 +1,6 @@
 # fluttershopapp
 
-shop app with state management
+shop app with state management using Provider covering complex scenario too.
 
 ## Getting Started
 
