@@ -1,6 +1,7 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:fluttershopapp/provider/product.dart';
+import '../provider/products_provider.dart';
 
 class EditProductScreen extends StatefulWidget {
   static const routeArgs = '/edit-product-screen';
@@ -21,23 +22,40 @@ class _EditProductScreenState extends State<EditProductScreen> {
     id: null,
     imageUrl: '',
   );
+  var _editValues = {
+    'title': '',
+    'price': '',
+    'description': '',
+    'imageUrl': '',
+  };
+  var _isInit = true;
 
   final _formKey = GlobalKey<FormState>();
-
-  @override
-  void dispose() {
-    super.dispose();
-    _priceFocuesNode.dispose();
-    _descriptionFocuesNode.dispose();
-    _imageUrlController.dispose();
-    _imageUrlFocusNode.dispose();
-    _imageUrlFocusNode.removeListener(_updateImageUrl);
-  }
 
   @override
   void initState() {
     super.initState();
     _imageUrlFocusNode.addListener(_updateImageUrl);
+  }
+
+  @override
+  void didChangeDependencies() {
+    if (_isInit) {
+      final productId = ModalRoute.of(context).settings.arguments as String;
+      if (productId != null) {
+        _addedProduct = Provider.of<ProductsProvider>(context, listen: false)
+            .getProductsById(productId);
+        _editValues = {
+          'title': _addedProduct.title,
+          'price': _addedProduct.price.toString(),
+          'description': _addedProduct.description,
+          'imageUrl': '',
+        };
+        _imageUrlController.text = _addedProduct.imageUrl;
+      }
+    }
+    _isInit = false;
+    super.didChangeDependencies();
   }
 
   void _updateImageUrl() {
@@ -52,10 +70,24 @@ class _EditProductScreenState extends State<EditProductScreen> {
       return;
     }
     _formKey.currentState.save();
-    print(_addedProduct.title);
-    print(_addedProduct.description);
-    print(_addedProduct.price);
-    print(_addedProduct.imageUrl);
+    if (_addedProduct.id != null) {
+      Provider.of<ProductsProvider>(context, listen: false)
+          .updateProduct(_addedProduct.id, _addedProduct);
+    } else {
+      Provider.of<ProductsProvider>(context, listen: false)
+          .addItems(_addedProduct);
+    }
+    Navigator.of(context).pop();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _priceFocuesNode.dispose();
+    _descriptionFocuesNode.dispose();
+    _imageUrlController.dispose();
+    _imageUrlFocusNode.dispose();
+    _imageUrlFocusNode.removeListener(_updateImageUrl);
   }
 
   @override
@@ -79,6 +111,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
             child: ListView(
               children: <Widget>[
                 TextFormField(
+                  initialValue: _editValues['title'],
                   decoration: InputDecoration(
                     labelText: 'Title',
                   ),
@@ -94,7 +127,8 @@ class _EditProductScreenState extends State<EditProductScreen> {
                   },
                   onSaved: (value) {
                     _addedProduct = Product(
-                      id: null,
+                      id: _addedProduct.id,
+                      isFavourite: _addedProduct.isFavourite,
                       title: value,
                       description: _addedProduct.description,
                       imageUrl: _addedProduct.imageUrl,
@@ -103,6 +137,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
                   },
                 ),
                 TextFormField(
+                  initialValue: _editValues['price'],
                   decoration: InputDecoration(
                     labelText: 'Price',
                   ),
@@ -110,14 +145,12 @@ class _EditProductScreenState extends State<EditProductScreen> {
                     if (value.isEmpty) {
                       return 'Please Provide a value';
                     }
-                    if(double.tryParse(value) == null)
-                      {
-                        return 'Please provide a valid number';
-                      }
-                    if(double.parse(value) <=0)
-                      {
-                        return 'Please enter number greater than zero';
-                      }
+                    if (double.tryParse(value) == null) {
+                      return 'Please provide a valid number';
+                    }
+                    if (double.parse(value) <= 0) {
+                      return 'Please enter number greater than zero';
+                    }
                     return null;
                   },
                   textInputAction: TextInputAction.next,
@@ -128,7 +161,8 @@ class _EditProductScreenState extends State<EditProductScreen> {
                   },
                   onSaved: (value) {
                     _addedProduct = Product(
-                      id: null,
+                      id: _addedProduct.id,
+                      isFavourite: _addedProduct.isFavourite,
                       title: _addedProduct.title,
                       description: _addedProduct.description,
                       imageUrl: _addedProduct.imageUrl,
@@ -137,6 +171,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
                   },
                 ),
                 TextFormField(
+                  initialValue: _editValues['description'],
                   decoration: InputDecoration(
                     labelText: 'Description',
                   ),
@@ -144,7 +179,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
                     if (value.isEmpty) {
                       return 'Please Provide a value';
                     }
-                    if(value.length <10){
+                    if (value.length < 10) {
                       return 'Please enter 10 characters long';
                     }
                     return null;
@@ -154,7 +189,8 @@ class _EditProductScreenState extends State<EditProductScreen> {
                   focusNode: _descriptionFocuesNode,
                   onSaved: (value) {
                     _addedProduct = Product(
-                      id: null,
+                      id: _addedProduct.id,
+                      isFavourite: _addedProduct.isFavourite,
                       title: _addedProduct.title,
                       description: value,
                       imageUrl: _addedProduct.imageUrl,
@@ -194,20 +230,22 @@ class _EditProductScreenState extends State<EditProductScreen> {
                           if (value.isEmpty) {
                             return 'Please Provide a value';
                           }
-                          if(!value.startsWith('http') && !value.startsWith('https'))
-                            {
-                              return 'Please enter a valid url';
-                            }
-                          if(!value.endsWith('.png') && !value.endsWith('.jpg')&& !value.endsWith('.jpeg'))
-                            {
-                              return 'Please enter a valid image url';
-                            }
+                          if (!value.startsWith('http') &&
+                              !value.startsWith('https')) {
+                            return 'Please enter a valid url';
+                          }
+//                          if (!value.endsWith('.png') &&
+//                              !value.endsWith('.jpg') &&
+//                              !value.endsWith('.jpeg')) {
+//                            return 'Please enter a valid image url';
+//                          }
                           return null;
                         },
                         decoration: InputDecoration(labelText: 'ImageUrl'),
                         onSaved: (value) {
                           _addedProduct = Product(
-                            id: null,
+                            id: _addedProduct.id,
+                            isFavourite: _addedProduct.isFavourite,
                             title: _addedProduct.title,
                             description: _addedProduct.description,
                             imageUrl: value,
