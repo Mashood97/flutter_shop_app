@@ -113,9 +113,16 @@ class ProductsProvider with ChangeNotifier {
     }
   }
 
-  void updateProduct(String id, Product editProduct) {
+  Future<void> updateProduct(String id, Product editProduct) async{
     final prodIndex = _items.indexWhere((prod) => prod.id == id);
     if (prodIndex >= 0) {
+      final url = 'https://flutter-firebase-shop-app.firebaseio.com/products/$id.json';
+      await http.patch(url,body: json.encode({
+        'title': editProduct.title,
+        'description': editProduct.description,
+        'price': editProduct.price,
+        'imageUrl': editProduct.imageUrl,
+      }));
       _items[prodIndex] = editProduct;
       notifyListeners();
     } else {
@@ -124,7 +131,25 @@ class ProductsProvider with ChangeNotifier {
   }
 
   void deleteProduct(String id) {
-    _items.removeWhere((prod) => prod.id == id);
+    final url = 'https://flutter-firebase-shop-app.firebaseio.com/products/$id.json';
+    final existingProductIndex = _items.indexWhere((prod) => prod.id == id);
+    var existingProductData = _items[existingProductIndex];
+
+
+
+    //this http.delete is optimistic updating that is if any error then dont delete the item keep its ref and add to list and if no error occurs then delte the data
+    http.delete(url).then((response){
+    if(response.statusCode >=400)
+      {
+
+      }
+    }).catchError((_){
+      _items.insert(existingProductIndex, existingProductData);
+      notifyListeners();
+
+    });
+
+    _items.removeAt(existingProductIndex);
     notifyListeners();
   }
 }
