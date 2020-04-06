@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fluttershopapp/provider/products_provider.dart';
 import 'package:fluttershopapp/widgets/main_drawer.dart';
 import '../screens/cart_overview_screen.dart';
 import 'package:fluttershopapp/widgets/badge.dart';
@@ -20,6 +21,34 @@ class ProductOverviewScreen extends StatefulWidget {
 
 class _ProductOverviewScreenState extends State<ProductOverviewScreen> {
   var showFav = false;
+  var _isInit = true;
+  var _isLoading = false;
+
+  @override
+  void initState() {
+//    Future.delayed(Duration.zero).then((_){
+//      Provider.of<ProductsProvider>(context).getandsetProduct();
+//
+//    }); // we can use this to do work for api calling as context dont work on initstate.
+    super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    if (_isInit) {
+      setState(() {
+        _isLoading = true;
+      });
+      Provider.of<ProductsProvider>(context).getandsetProduct().then((_){
+        setState(() {
+          _isLoading = false;
+        });
+      });
+    }
+
+    _isInit = false;
+    super.didChangeDependencies();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -62,7 +91,7 @@ class _ProductOverviewScreenState extends State<ProductOverviewScreen> {
           ),
         ],
       ),
-      body: ProductsGrid(showFav),
+      body: _isLoading ? Center(child: CircularProgressIndicator()) : ProductsGrid(showFav),
       drawer: MainDrawer(),
     );
   }
