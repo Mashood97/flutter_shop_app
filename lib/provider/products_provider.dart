@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
+import 'package:fluttershopapp/models/http_exception.dart';
 import 'product.dart';
 import 'package:http/http.dart' as http;
 
@@ -49,11 +50,15 @@ class ProductsProvider with ChangeNotifier {
     });
   }
 
+
+
+
   List<Product> get getFavourite {
     return _items.where((prod) {
       return prod.isFavourite;
     }).toList();
   }
+
 
   Future<void> getandsetProduct() async {
     try {
@@ -63,6 +68,11 @@ class ProductsProvider with ChangeNotifier {
       print(json.decode(response.body));
       final extractedData = json.decode(response.body) as Map<String,
           dynamic>; //dynnamic defines that its a map so map inside a map.
+
+      if(extractedData == null)
+      {
+        return;
+      }
       List<Product> loadedProduct = [];
       extractedData.forEach((prodId, prodData) {
         loadedProduct.add(Product(
@@ -75,6 +85,7 @@ class ProductsProvider with ChangeNotifier {
         ));
       }); //prodId = key and prodData=value
       _items = loadedProduct;
+      print(_items);
       notifyListeners();
     } catch (error) {
       throw error;
@@ -113,16 +124,18 @@ class ProductsProvider with ChangeNotifier {
     }
   }
 
-  Future<void> updateProduct(String id, Product editProduct) async{
+  Future<void> updateProduct(String id, Product editProduct) async {
     final prodIndex = _items.indexWhere((prod) => prod.id == id);
     if (prodIndex >= 0) {
-      final url = 'https://flutter-firebase-shop-app.firebaseio.com/products/$id.json';
-      await http.patch(url,body: json.encode({
-        'title': editProduct.title,
-        'description': editProduct.description,
-        'price': editProduct.price,
-        'imageUrl': editProduct.imageUrl,
-      }));
+      final url =
+          'https://flutter-firebase-shop-app.firebaseio.com/products/$id.json';
+      await http.patch(url,
+          body: json.encode({
+            'title': editProduct.title,
+            'description': editProduct.description,
+            'price': editProduct.price,
+            'imageUrl': editProduct.imageUrl,
+          }));
       _items[prodIndex] = editProduct;
       notifyListeners();
     } else {
@@ -130,26 +143,22 @@ class ProductsProvider with ChangeNotifier {
     }
   }
 
-  void deleteProduct(String id) {
-    final url = 'https://flutter-firebase-shop-app.firebaseio.com/products/$id.json';
+  Future<void> deleteProduct(String id) async{
+    final url =
+        'https://flutter-firebase-shop-app.firebaseio.com/products/$id.json';
     final existingProductIndex = _items.indexWhere((prod) => prod.id == id);
     var existingProductData = _items[existingProductIndex];
 
 
-
-    //this http.delete is optimistic updating that is if any error then dont delete the item keep its ref and add to list and if no error occurs then delte the data
-    http.delete(url).then((response){
-    if(response.statusCode >=400)
-      {
-
-      }
-    }).catchError((_){
-      _items.insert(existingProductIndex, existingProductData);
-      notifyListeners();
-
-    });
-
     _items.removeAt(existingProductIndex);
     notifyListeners();
+    //this http.delete is optimistic updating that is if any error then dont delete the item keep its ref and add to list and if no error occurs then delte the data
+   final response = await http.delete(url);
+      if (response.statusCode >= 400) {
+        _items.insert(existingProductIndex, existingProductData);
+        notifyListeners();
+        throw HttpException('Could not delete product');
+    }
+
   }
 }
