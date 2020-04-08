@@ -23,31 +23,35 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider.value(
           value: Auth(),
         ),
-        ChangeNotifierProvider.value(
-          value: ProductsProvider(),
+        ChangeNotifierProxyProvider<Auth, ProductsProvider>(
+          builder: (ctx, auth, previousProducts) => ProductsProvider(auth.token,
+              previousProducts == null ? [] : previousProducts.items),
         ),
         ChangeNotifierProvider.value(
           value: Cart(),
         ),
-        ChangeNotifierProvider.value(
-          value: Orders(),
+        ChangeNotifierProxyProvider<Auth, Orders>(
+          builder: (ctx, auth, prevorders) =>
+              Orders(auth.token, prevorders == null ? [] : prevorders.items),
         ),
       ],
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: 'Flutter Demo',
-        theme: ThemeData(
-            primarySwatch: Colors.purple,
-            accentColor: Colors.deepOrange,
-            fontFamily: 'Lato'),
-        home: AuthScreen(),
-        routes: {
-          ProductDetailScreen.namedRoute: (ctx) => ProductDetailScreen(),
-          CartOverviewScreen.routeNamed: (ctx) => CartOverviewScreen(),
-          OrdersOverviewScreen.routeArgs: (ctx) => OrdersOverviewScreen(),
-          UserProductsScreen.routeArgs: (ctx) => UserProductsScreen(),
-          EditProductScreen.routeName: (ctx) => EditProductScreen(),
-        },
+      child: Consumer<Auth>(
+        builder: (ctx, auth, _) => MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: 'Flutter Demo',
+          theme: ThemeData(
+              primarySwatch: Colors.purple,
+              accentColor: Colors.deepOrange,
+              fontFamily: 'Lato'),
+          home: auth.isAuth ? ProductOverviewScreen() : AuthScreen(),
+          routes: {
+            ProductDetailScreen.namedRoute: (ctx) => ProductDetailScreen(),
+            CartOverviewScreen.routeNamed: (ctx) => CartOverviewScreen(),
+            OrdersOverviewScreen.routeArgs: (ctx) => OrdersOverviewScreen(),
+            UserProductsScreen.routeArgs: (ctx) => UserProductsScreen(),
+            EditProductScreen.routeName: (ctx) => EditProductScreen(),
+          },
+        ),
       ),
     );
   }

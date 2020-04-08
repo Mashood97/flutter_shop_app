@@ -40,6 +40,10 @@ class ProductsProvider with ChangeNotifier {
 //    ),
   ];
 
+  final authtoken;
+
+  ProductsProvider(this.authtoken, this._items);
+
   List<Product> get items {
     return [..._items];
   }
@@ -50,27 +54,21 @@ class ProductsProvider with ChangeNotifier {
     });
   }
 
-
-
-
   List<Product> get getFavourite {
-    return _items.where((prod) {
-      return prod.isFavourite;
-    }).toList();
-  }
+    return _items.where((prodItem) => prodItem.isFavourite).toList();
 
+  }
 
   Future<void> getandsetProduct() async {
     try {
-      const url =
-          'https://flutter-firebase-shop-app.firebaseio.com/products.json';
+      final url =
+          'https://flutter-firebase-shop-app.firebaseio.com/products.json?auth=$authtoken';
       final response = await http.get(url);
       print(json.decode(response.body));
       final extractedData = json.decode(response.body) as Map<String,
           dynamic>; //dynnamic defines that its a map so map inside a map.
 
-      if(extractedData == null)
-      {
+      if (extractedData == null) {
         return;
       }
       final List<Product> loadedProduct = [];
@@ -80,7 +78,7 @@ class ProductsProvider with ChangeNotifier {
           title: prodData['title'],
           description: prodData['description'],
           imageUrl: prodData['imageUrl'],
-          isFavourite: prodData['isFavourite'],
+          isFavourite: prodData['isFavorite'],
           price: prodData['price'],
         ));
       }); //prodId = key and prodData=value
@@ -94,8 +92,8 @@ class ProductsProvider with ChangeNotifier {
 
   Future<void> addProduct(Product product) async {
     try {
-      const url =
-          'https://flutter-firebase-shop-app.firebaseio.com/products.json';
+      final url =
+          'https://flutter-firebase-shop-app.firebaseio.com/products.json?auth=$authtoken';
 
       final response = await http.post(
         url,
@@ -128,7 +126,7 @@ class ProductsProvider with ChangeNotifier {
     final prodIndex = _items.indexWhere((prod) => prod.id == id);
     if (prodIndex >= 0) {
       final url =
-          'https://flutter-firebase-shop-app.firebaseio.com/products/$id.json';
+          'https://flutter-firebase-shop-app.firebaseio.com/products/$id.json?auth=$authtoken';
       await http.patch(url,
           body: json.encode({
             'title': editProduct.title,
@@ -143,22 +141,20 @@ class ProductsProvider with ChangeNotifier {
     }
   }
 
-  Future<void> deleteProduct(String id) async{
+  Future<void> deleteProduct(String id) async {
     final url =
-        'https://flutter-firebase-shop-app.firebaseio.com/products/$id.json';
+        'https://flutter-firebase-shop-app.firebaseio.com/products/$id.json?auth=$authtoken';
     final existingProductIndex = _items.indexWhere((prod) => prod.id == id);
     var existingProductData = _items[existingProductIndex];
-
 
     _items.removeAt(existingProductIndex);
     notifyListeners();
     //this http.delete is optimistic updating that is if any error then dont delete the item keep its ref and add to list and if no error occurs then delte the data
-   final response = await http.delete(url);
-      if (response.statusCode >= 400) {
-        _items.insert(existingProductIndex, existingProductData);
-        notifyListeners();
-        throw HttpException('Could not delete product');
+    final response = await http.delete(url);
+    if (response.statusCode >= 400) {
+      _items.insert(existingProductIndex, existingProductData);
+      notifyListeners();
+      throw HttpException('Could not delete product');
     }
-
   }
 }
