@@ -28,29 +28,28 @@ class Orders with ChangeNotifier {
   Future<void> getandSetOrders() async {
     const url = 'https://flutter-firebase-shop-app.firebaseio.com/orders.json';
     final response = await http.get(url);
-      print(json.decode(response.body));
+    print(json.decode(response.body));
     final ExtractedData = json.decode(response.body) as Map<String, dynamic>;
-    if(ExtractedData == null)
-      {
-        return;
-      }
+    if (ExtractedData == null) {
+      return;
+    }
     List<OrderItem> loadedorders = [];
     ExtractedData.forEach((orderId, orderData) {
-      loadedorders.add((OrderItem(
-        id: orderId,
-        amount: orderData['amount'],
-        dateTime: DateTime.parse(orderData['dateTime']),
-        products: (orderData['products'] as List<dynamic>).map((cartItem) {
-          return CartItem(
-            id: cartItem['id'],
-            price: cartItem['price'],
-            title: cartItem['title'],
-            quantity: cartItem['quantity'],
-          );
-        }).toList(),
-      )),
+      loadedorders.add(
+        (OrderItem(
+          id: orderId,
+          amount: orderData['amount'],
+          dateTime: DateTime.parse(orderData['dateTime']),
+          products: (orderData['products'] as List<dynamic>).map((cartItem) {
+            return CartItem(
+              id: cartItem['id'],
+              price: cartItem['price'],
+              title: cartItem['title'],
+              quantity: cartItem['quantity'],
+            );
+          }).toList(),
+        )),
       );
-
     });
     _items = loadedorders;
     notifyListeners();

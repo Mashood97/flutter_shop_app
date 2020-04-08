@@ -73,7 +73,7 @@ class ProductsProvider with ChangeNotifier {
       {
         return;
       }
-      List<Product> loadedProduct = [];
+      final List<Product> loadedProduct = [];
       extractedData.forEach((prodId, prodData) {
         loadedProduct.add(Product(
           id: prodId,
