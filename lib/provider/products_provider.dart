@@ -41,8 +41,9 @@ class ProductsProvider with ChangeNotifier {
   ];
 
   final authtoken;
+  final String userId;
 
-  ProductsProvider(this.authtoken, this._items);
+  ProductsProvider(this.authtoken, this.userId, this._items);
 
   List<Product> get items {
     return [..._items];
@@ -56,12 +57,11 @@ class ProductsProvider with ChangeNotifier {
 
   List<Product> get getFavourite {
     return _items.where((prodItem) => prodItem.isFavourite).toList();
-
   }
 
   Future<void> getandsetProduct() async {
     try {
-      final url =
+      var url =
           'https://flutter-firebase-shop-app.firebaseio.com/products.json?auth=$authtoken';
       final response = await http.get(url);
       print(json.decode(response.body));
@@ -71,6 +71,10 @@ class ProductsProvider with ChangeNotifier {
       if (extractedData == null) {
         return;
       }
+      url =
+          'https://flutter-firebase-shop-app.firebaseio.com/userFavourites/$userId.json?auth=$authtoken';
+      final favouriteResponse = await http.get(url);
+      final favoriteData = json.decode(favouriteResponse.body);
       final List<Product> loadedProduct = [];
       extractedData.forEach((prodId, prodData) {
         loadedProduct.add(Product(
@@ -78,7 +82,9 @@ class ProductsProvider with ChangeNotifier {
           title: prodData['title'],
           description: prodData['description'],
           imageUrl: prodData['imageUrl'],
-          isFavourite: prodData['isFavorite'],
+          isFavourite:
+              favoriteData == null ? false : favoriteData[prodId] ?? false,
+          //?? checks if prodid is null in fav data so rollback to false orprev value.
           price: prodData['price'],
         ));
       }); //prodId = key and prodData=value
@@ -102,7 +108,6 @@ class ProductsProvider with ChangeNotifier {
           'description': product.description,
           'imageUrl': product.imageUrl,
           'price': product.price,
-          'isFavorite': product.isFavourite,
         }),
       );
 
