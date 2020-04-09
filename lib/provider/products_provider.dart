@@ -59,10 +59,11 @@ class ProductsProvider with ChangeNotifier {
     return _items.where((prodItem) => prodItem.isFavourite).toList();
   }
 
-  Future<void> getandsetProduct() async {
+  Future<void> getandsetProduct([bool setfilter = false] ) async {
     try {
+      final filterString = setfilter ? 'orderBy="creatorId"&equalTo="$userId"': '';
       var url =
-          'https://flutter-firebase-shop-app.firebaseio.com/products.json?auth=$authtoken';
+          'https://flutter-firebase-shop-app.firebaseio.com/products.json?auth=$authtoken&$filterString';
       final response = await http.get(url);
       print(json.decode(response.body));
       final extractedData = json.decode(response.body) as Map<String,
@@ -108,6 +109,7 @@ class ProductsProvider with ChangeNotifier {
           'description': product.description,
           'imageUrl': product.imageUrl,
           'price': product.price,
+          'creatorId': userId,
         }),
       );
 

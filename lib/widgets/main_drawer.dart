@@ -1,8 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-
+import 'package:fluttershopapp/screens/auth_screen.dart';
+import 'package:provider/provider.dart';
 import '../screens/orders_overview_screen.dart';
 import '../screens/user_products_screen.dart';
+import '../provider/auth.dart';
 
 class MainDrawer extends StatelessWidget {
   @override
@@ -71,6 +73,25 @@ class MainDrawer extends StatelessWidget {
             ),
             trailing: Icon(
               Icons.edit,
+              color: Theme.of(context).accentColor,
+            ),
+          ),
+          Divider(),
+          ListTile(
+            onTap: () {
+              Navigator.of(context).pop();
+              Provider.of<Auth>(context, listen: false).logoutUser();
+            },
+//                Navigator.of(context)
+//                    .pushReplacementNamed(AuthScreen.routeName),
+            title: Text(
+              'Logout',
+              style: Theme.of(context).textTheme.title.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
+            trailing: Icon(
+              Icons.exit_to_app,
               color: Theme.of(context).accentColor,
             ),
           ),
