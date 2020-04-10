@@ -80,6 +80,7 @@ class MainDrawer extends StatelessWidget {
           ListTile(
             onTap: () {
               Navigator.of(context).pop();
+              Navigator.of(context).pushReplacementNamed('/');
               Provider.of<Auth>(context, listen: false).logoutUser();
             },
 //                Navigator.of(context)
