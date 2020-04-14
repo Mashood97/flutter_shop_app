@@ -23,10 +23,10 @@ class OrdersOverviewScreen extends StatelessWidget {
               child: Text('An Error Occured'),
             );
           }
-          else if(datasnapshop.data == null)
-            {
-              return Center(child: Text('No Data Found'),);
-            }
+//          else if(datasnapshop.data == null)
+//            {
+//              return Center(child: Text('No Data Found'),);
+//            }
           else {
             return Consumer<Orders>(
               builder: (ctx, order, child) {
